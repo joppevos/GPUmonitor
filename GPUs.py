@@ -1,12 +1,7 @@
 from subprocess import Popen, PIPE
 from distutils import spawn
 import os
-import math
-import random
-import time
-import sys
-import platform
-
+import threading
 
 class GPU:
     def __init__(self, ID, uuid, load, memoryTotal, memoryUsed, memoryFree, driver, gpu_name, serial, display_mode, display_active, temp_gpu):
@@ -29,7 +24,7 @@ class GPU:
               f'{self.id}| {self.load}|{self.temperature}|{self.memoryUsed}|{self.name}')
 
 
-def safeFloatCast(strNumber):
+def safefloatcast(strNumber):
     try:
         number = float(strNumber)
     except ValueError:
@@ -37,7 +32,7 @@ def safeFloatCast(strNumber):
     return number
 
 
-def GPU_info():
+def gpu_info():
     # Try to find 'executable' in the directories listed in 'path
     nvidia_smi = spawn.find_executable('nvidia-smi')
     if nvidia_smi is None:
@@ -67,13 +62,13 @@ def GPU_info():
             elif (i == 1):
                 uuid = vals[i]
             elif (i == 2):
-                gpuUtil = safeFloatCast(vals[i]) / 100
+                gpuUtil = safefloatcast(vals[i]) / 100
             elif (i == 3):
-                memTotal = safeFloatCast(vals[i])
+                memTotal = safefloatcast(vals[i])
             elif (i == 4):
-                memUsed = safeFloatCast(vals[i])
+                memUsed = safefloatcast(vals[i])
             elif (i == 5):
-                memFree = safeFloatCast(vals[i])
+                memFree = safefloatcast(vals[i])
             elif (i == 6):
                 driver = vals[i]
             elif (i == 7):
@@ -85,12 +80,19 @@ def GPU_info():
             elif (i == 10):
                 display_mode = vals[i]
             elif (i == 11):
-                temp_gpu = safeFloatCast(vals[i])
+                temp_gpu = safefloatcast(vals[i])
         GPUs.append(GPU(deviceIds, uuid, gpuUtil, memTotal, memUsed, memFree, driver, gpu_name, serial, display_mode,
                         display_active, temp_gpu))
     return GPUs  # (deviceIds, gpuUtil, memUtil)
 
 
-x = GPU_info()
-for i in x:
-    print(i.describe())
+def thread():
+    """
+    keep printing gpu current values
+    :return:
+    """
+
+    threading.Timer(5.0, thread).start()
+    gpu = gpu_info()
+    for g in gpu:
+        print(g.temperature)
