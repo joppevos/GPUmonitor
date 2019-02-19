@@ -35,21 +35,21 @@ def plot():
     stream_2 = dict(token=stream_id[1], maxpoints=1000)
 
 
-    trace = go.Scatter(
+    trace1 = go.Scatter(
         x=[],
         y=[],
         mode='lines+markers',
-        stream=stream_1[0])         # 1 per trace
+        stream=stream_1)         # 1 per trace
 
-    trace = go.Scatter(
+    trace2 = go.Scatter(
         x=[],
         y=[],
         mode='lines+markers',
-        stream=stream_2[1])  # 1 per trace
+        stream=stream_2)  # 1 per trace
 
     layout = go.Layout(title='Time Series')
 
-    fig = go.Figure(data=[trace], layout=layout)
+    fig = go.Figure(data=[trace1], layout=layout)
     unique_url = py.plot(fig, filename='render')
     # We will provide the stream link object the same token that's associated with the trace we wish to stream to
     #
@@ -59,9 +59,9 @@ def plot():
     # connect 1 stream for 1 trace
     plot1 = connecter(stream_id[0], temperature() )
     plot1.write()
+    # plot2 = connecter(stream_id[1], memory() )
+    # plot2.write()
 
-    plot2 = connecter(stream_id[1], memory() )
-    plot2.write()
     raise ValueError('made it')
 
 
@@ -69,33 +69,36 @@ class connecter:
 
     def __init__(self, stream_id, y_axis):
         self.s = py.Stream(stream_id)
-        self.x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         self.y = y_axis
-        self.sleep = 5
 
 
     def write(self):
         self.s.open()
         while True:
+
+            print(self.y)
+
             # Send data to your plot
             x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            y = temperature()
-
+            y = self.y
             self.s.write(dict(x=x, y=y))
             #     Write numbers to stream to append current data on plot,
             #     write lists to overwrite existing data on plot
-            self.sleep
+            time.sleep(5)
 
 
 def temperature():
     gpus = gpu_info()
     for gpu in gpus:
-        return gpu.load
+        percent = gpu.temperature/70
+        return percent
 
 
 def memory():
     gpus = gpu_info()
     for gpu in gpus:
-        return gpu.memoryUsed
+        percent = gpu.memoryUsed / gpu.memoryTotal
+        return percent
 
 plot()
+
