@@ -34,7 +34,6 @@ def plot():
     stream_1 = dict(token=stream_id[0], maxpoints=1000)
     stream_2 = dict(token=stream_id[1], maxpoints=1000)
 
-
     trace1 = go.Scatter(
         x=[],
         y=[],
@@ -57,41 +56,47 @@ def plot():
     # s1 = py.Stream(stream_id)
     #
     # connect 1 stream for 1 trace
-    plot1 = connecter(stream_id[0], temperature() )
-    plot1.write()
+    plot1 = connecter(stream_id[0])
+    plot1.open_con()
+
+    plot2 = connecter(stream_id[1])
+    plot2.open_con()
+    while True:
+        plot1.write('temp')
+        plot2.write('load')
+    # raise ValueError('made it')
     # plot2 = connecter(stream_id[1], memory() )
     # plot2.write()
-
-    raise ValueError('made it')
 
 
 class connecter:
 
-    def __init__(self, stream_id, y_axis):
+    def __init__(self, stream_id):
         self.s = py.Stream(stream_id)
-        self.y = y_axis
+        # self.y = y_axis
 
 
-    def write(self):
+    def write(self, display):
+        # Send data to your plot
+        x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        if display == 'temp':
+            y = temperature()
+        elif display == 'load':
+            y = memory()
+        self.s.write(dict(x=x, y=y))
+        #     Write numbers to stream to append current data on plot,
+        #     write lists to overwrite existing data on plot
+        time.sleep(5)
+
+    def open_con(self):
         self.s.open()
-        while True:
-
-            print(self.y)
-
-            # Send data to your plot
-            x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            y = self.y
-            self.s.write(dict(x=x, y=y))
-            #     Write numbers to stream to append current data on plot,
-            #     write lists to overwrite existing data on plot
-            time.sleep(5)
 
 
 def temperature():
     gpus = gpu_info()
     for gpu in gpus:
-        percent = gpu.temperature/70
-        return percent
+        percent = gpu.temperature
+        return temp
 
 
 def memory():
