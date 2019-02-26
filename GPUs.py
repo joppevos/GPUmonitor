@@ -95,4 +95,5 @@ def thread():
     threading.Timer(5.0, thread).start()
     gpu = gpu_info()
     for g in gpu:
-        print(g.temperature)
+        print(g.load)
+
