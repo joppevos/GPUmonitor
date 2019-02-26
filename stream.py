@@ -5,16 +5,19 @@ import plotly.tools as tls
 import plotly.graph_objs as go
 from GPUs import gpu_info
 from multiprocessing import Process
-
+from plotly import tools
 # (*) Import module keep track and format current time
 import datetime
 import time
+import numpy as np
+
 
 # todo: be able to interactivy select each satoshi.
 # todo: see all gpus of a single satoshi plotted in the same graph on a seperat line
 # todo: different color lines for each value. i.e temperature, etc. legend for each value
 # todo: make hufter prove. make it startup on every satoshi automaticly.
 # todo: extra bonus, overclock button,  give a warning when a gpu is not running.
+
 
 def stream_ids():
     """
@@ -46,57 +49,51 @@ def plot():
         mode='lines+markers',
         stream=stream_2)  # 1 per trace
 
-    layout = go.Layout(title='Time Series')
+    fig = tools.make_subplots(rows=1, cols=2, subplot_titles=('Plot 1', 'Plot 2'))
+    fig.append_trace(trace1, 1, 1)
+    fig.append_trace(trace2, 1, 2)
 
-    fig = go.Figure(data=[trace1], layout=layout)
+    fig['layout'].update(height=800, width=1600, title='Satoshi3') # todo get name of slave socket.gethostname()
+
+    fig['layout']['xaxis1'].update(title='Memory')
+    fig['layout']['xaxis2'].update(title='Average temperature', range=[10, 50])
+
     unique_url = py.plot(fig, filename='render')
-    # We will provide the stream link object the same token that's associated with the trace we wish to stream to
-    #
-    # # open the url
-    # s1 = py.Stream(stream_id)
-    #
-    # connect 1 stream for 1 trace
-    plot1 = connecter(stream_id[0])
-    plot1.open_con()
+    write_trace()
 
-    plot2 = connecter(stream_id[1])
-    plot2.open_con()
+def write_trace():
+
+    stream_id = ['enedfilzr5', 'd4krs93e0q']
+    s1 = py.Stream(stream_id[0])
+    s1.open()
+
+    s2 = py.Stream(stream_id[1])
+    s2.open()
     while True:
-        plot1.write('temp')
-        plot2.write('load')
-    # raise ValueError('made it')
-    # plot2 = connecter(stream_id[1], memory() )
-    # plot2.write()
-
-
-class connecter:
-
-    def __init__(self, stream_id):
-        self.s = py.Stream(stream_id)
-        # self.y = y_axis
-
-
-    def write(self, display):
-        # Send data to your plot
         x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        if display == 'temp':
-            y = temperature()
-        elif display == 'load':
-            y = memory()
-        self.s.write(dict(x=x, y=y))
-        #     Write numbers to stream to append current data on plot,
-        #     write lists to overwrite existing data on plot
-        time.sleep(5)
 
-    def open_con(self):
-        self.s.open()
+        y1 = memory()
+        s1.write(dict(x=x, y=y1))
+
+        y2 = temperature()
+        y2 = int(y2)
+        s2.write(dict(x=x, y=y2))
+
+        time.sleep(5)
 
 
 def temperature():
+    """ returns average temperature of the GPUs"""
     gpus = gpu_info()
+    average = []
     for gpu in gpus:
-        percent = gpu.temperature
-        return temp
+        temp = gpu.temperature
+        if temp >= 10:
+            print(f'Temperature of {gpu.name} is {gpu.temperature} ')
+        average.append(gpu.temperature)
+
+    temp_mean = np.array(average).mean()
+    return temp_mean
 
 
 def memory():
@@ -104,6 +101,6 @@ def memory():
     for gpu in gpus:
         percent = gpu.memoryUsed / gpu.memoryTotal
         return percent
-
+# write_trace()
 plot()
 
