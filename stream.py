@@ -3,21 +3,17 @@ import plotly
 import plotly.plotly as py
 import plotly.tools as tls
 import plotly.graph_objs as go
-from GPUs import gpu_info
+from gpus.GPUs import gpu_info
 from multiprocessing import Process
 from plotly import tools
 # (*) Import module keep track and format current time
 import datetime
 import time
 import numpy as np
+import socket
 
 
-# todo: be able to interactivy select each satoshi.
-# todo: see all gpus of a single satoshi plotted in the same graph on a seperat line
-# todo: different color lines for each value. i.e temperature, etc. legend for each value
-# todo: make hufter prove. make it startup on every satoshi automaticly.
 # todo: extra bonus, overclock button,  give a warning when a gpu is not running.
-
 
 def stream_ids():
     """
@@ -33,6 +29,10 @@ def plot():
     """
     create a figure plot
     """
+    name = [gpu.name for gpu in gpu_info()]
+    driver = [gpu.driver for gpu in gpu_info()][0]
+    id = [gpu.id for gpu in gpu_info()][0]
+
     stream_id = stream_ids()
     stream_1 = dict(token=stream_id[0], maxpoints=1000)
     stream_2 = dict(token=stream_id[1], maxpoints=1000)
@@ -42,19 +42,22 @@ def plot():
         x=[],
         y=[],
         mode='lines+markers',
-        stream=stream_1)         # 1 per trace
+        stream=stream_1,
+        name=f'{(len(name))}X {name[0]}')       # 1 per trace
 
     trace2 = go.Scatter(
         x=[],
         y=[],
         mode='lines+markers',
-        stream=stream_2)  # 1 per trace
+        stream=stream_2,
+        name=driver) # 1 per trace
 
     trace3 = go.Scatter(
         x=[],
         y=[],
         mode='lines+markers',
-        stream=stream_3)  # 1 per trace
+        stream=stream_3,
+        name=id)  # 1 per trace
 
     fig = tools.make_subplots(rows=2, cols=2)
     fig.append_trace(trace1, 1, 1)
@@ -64,14 +67,15 @@ def plot():
     fig['layout'].update(height=800, width=800, title=f'{socket.gethostname()}') # todo get name of slave socket.gethostname()
 
     fig['layout']['xaxis1'].update(title='Memory')
-    fig['layout']['xaxis2'].update(title='Average temperature')
-    fig['layout']['xaxis3'].update(title='Average usageload')
+    fig['layout']['xaxis2'].update(title='Temperature')
+    fig['layout']['xaxis3'].update(title='Usage-load')
 
     unique_url = py.plot(fig, filename='render')
-    stream_id(stream_id)
+    stream()
 
 
-def stream(stream_id):
+def stream():
+    stream_id = ['enedfilzr5', 'd4krs93e0q', 'f8thwyqzkq']
     s1 = py.Stream(stream_id[0])
     s1.open()
 
@@ -86,16 +90,16 @@ def stream(stream_id):
         y1 = memory()
         s1.write(dict(x=x, y=y1))
 
-        y2 = get('temp')
+        y2 = temperature()
         s2.write(dict(x=x, y=y2))
 
         y3 = load()
         s3.write(dict(x=x, y=y3))
 
-        time.sleep(5)
+        time.sleep(3)
 
 
-def temperature(input):
+def temperature():
     """ returns average temperature of the GPUs"""
     gpus = gpu_info()
     average = []
@@ -121,7 +125,8 @@ def load():
     gpus = gpu_info()
     average = []
     for gpu in gpus:
-        average.append(gpu.load)*100
+        percent = (gpu.load)*100
+        average.append(percent)
     load_mean = np.array([average]).mean()
     return load_mean
 
