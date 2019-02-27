@@ -6,22 +6,41 @@ import plotly.graph_objs as go
 from gpus.GPUs import gpu_info
 from multiprocessing import Process
 from plotly import tools
-# (*) Import module keep track and format current time
 import datetime
 import time
 import numpy as np
 import socket
 
+# todo: overclock button,  give a warning when a gpu is not running
 
-# todo: extra bonus, overclock button,  give a warning when a gpu is not running.
+
+def read_keys():
+    api = ''
+    tokens = []
+    counter = 0
+    username = ''
+    with open('keys.txt', 'r') as f:
+        for line in f:
+            for word in line.split():
+                if counter == 0:
+                    username = word
+                    counter += 1
+                elif len(word) >= 12:
+                    print(word)
+                    api = word
+                else:
+                    tokens.append(word)
+    return api, tokens, username
+
 
 def stream_ids():
     """
     :return: list of 'stream_ids'
     """
-    plotly.tools.set_credentials_file(username='sehsucht', api_key='hnGBsUh06NKbqBMle8Mb', stream_ids=['enedfilzr5', 'd4krs93e0q', 'f8thwyqzkq'])
+    api, tokens, username = read_keys()
+    print(tokens)
+    plotly.tools.set_credentials_file(username=username, api_key=api, stream_ids=tokens)
     stream_ids = tls.get_credentials_file()['stream_ids']
-
     return stream_ids
 
 
@@ -50,22 +69,21 @@ def plot():
         y=[],
         mode='lines+markers',
         stream=stream_2,
-        name=driver) # 1 per trace
+        name='') # 1 per trace
 
     trace3 = go.Scatter(
         x=[],
         y=[],
         mode='lines+markers',
         stream=stream_3,
-        name=id)  # 1 per trace
+        name='')  # 1 per trace
 
     fig = tools.make_subplots(rows=2, cols=2)
     fig.append_trace(trace1, 1, 1)
     fig.append_trace(trace2, 1, 2)
     fig.append_trace(trace3, 2, 1)
 
-    fig['layout'].update(height=800, width=800, title=f'{socket.gethostname()}') # todo get name of slave socket.gethostname()
-
+    fig['layout'].update(height=800, width=800, title=f'{socket.gethostname()}')
     fig['layout']['xaxis1'].update(title='Memory')
     fig['layout']['xaxis2'].update(title='Temperature')
     fig['layout']['xaxis3'].update(title='Usage-load')
@@ -125,11 +143,10 @@ def load():
     gpus = gpu_info()
     average = []
     for gpu in gpus:
-        percent = (gpu.load)*100
+        percent = gpu.load*100
         average.append(percent)
     load_mean = np.array([average]).mean()
     return load_mean
-
 
 
 plot()
