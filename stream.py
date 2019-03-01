@@ -15,6 +15,7 @@ import time
 
 
 def read_keys():
+    """:return api, tokens, username"""
     api = ''
     tokens = []
     counter = 0
@@ -33,9 +34,7 @@ def read_keys():
 
 
 def stream_ids():
-    """
-    :return: list of 'stream_ids'
-    """
+    """:return: list of 'stream_ids'"""
     api, tokens, username = read_keys()
     plotly.tools.set_credentials_file(username=username, api_key=api, stream_ids=tokens)
     stream_ids = tls.get_credentials_file()['stream_ids']
@@ -43,9 +42,7 @@ def stream_ids():
 
 
 def plot():
-    """
-    create a figure plot
-    """
+    """ main func. get tokens, init plot and stream"""
     stream_id = stream_ids()
     fig = tools.make_subplots(rows=2, cols=2)
 
@@ -73,6 +70,7 @@ def plot():
 
 
 def open_streams(stream_id, gpumap):
+    """ Open each given stream and start streaming"""
     for s in stream_id:
         st = py.Stream(s)
         st.open()
@@ -132,29 +130,39 @@ def load(ids):
         if g.id == ids:
             result = g
             break
-    return result.load
+    return result.load*100
 
 
 def set_layout(fig):
     """ set layout for plot"""
     fig['layout'].update(height=1000, width=1000,
-                         title=f'Slave:{socket.gethostname()}, {len(gpu_info())}x {[gpu.name for gpu in gpu_info()][0]}')
+                         title=f'host: {socket.gethostname()}\t | {len(gpu_info())}x {[gpu.name for gpu in gpu_info()][0]}')
     fig['layout']['xaxis1'].update(title='Memory')
     fig['layout']['xaxis2'].update(title='Temperature')
     fig['layout']['xaxis3'].update(title='Usage-load')
 
+    fig['layout']['yaxis1'].update(title='%')
+    fig['layout']['yaxis2'].update(title=u'\N{DEGREE SIGN}C')
+    fig['layout']['yaxis3'].update(title='%')
+
 
 def append_traces(fig, gpumap):
     """append each gpu's 3 traces to a plot"""
+    colorway = ['#007CFF', '#00FCFF', '##FF2200', '#87FF00', '#0300FF', '#8300FF', '#FFC100', '#A200FF', '#FF005D']
+    c = 0
     for gpu in gpu_info():
         listofstreams = list(gpumap.get(gpu.id))
-        mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name='')  # 1 per trace
-        temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1], name='')  # 1 per trace
-        load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2], name='')  # 1 per trace
+        mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name=('gpu', gpu.id+1),
+                         line =dict(color=colorway[c]))  # 1 per trace
+        temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1],name=('gpu', gpu.id+1),
+                          line =dict(color=colorway[c]))  # 1 per trace
+        load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2],name=('gpu', gpu.id+1),
+                          line =dict(color=colorway[c]))  # 1 per trace
 
         fig.append_trace(mem, 1, 1)
         fig.append_trace(temp, 1, 2)
         fig.append_trace(load, 2, 1)
+        c += 1
 
 # def get_gpu_types():
 #     # see different types of gpus # todo
@@ -168,5 +176,6 @@ def append_traces(fig, gpumap):
 #     '{}X {}'
 #     print(d)
 
+# run main function
 plot()
 
