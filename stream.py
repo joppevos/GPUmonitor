@@ -137,7 +137,8 @@ def load(ids):
 
 def set_layout(fig):
     """ set layout for plot"""
-    fig['layout'].update(height=1000, width=1000, title=f'{socket.gethostname()}')
+    fig['layout'].update(height=1000, width=1000,
+                         title=f'Slave:{socket.gethostname()}, {len(gpu_info())}x {[gpu.name for gpu in gpu_info()][0]}')
     fig['layout']['xaxis1'].update(title='Memory')
     fig['layout']['xaxis2'].update(title='Temperature')
     fig['layout']['xaxis3'].update(title='Usage-load')
@@ -155,6 +156,17 @@ def append_traces(fig, gpumap):
         fig.append_trace(temp, 1, 2)
         fig.append_trace(load, 2, 1)
 
+# def get_gpu_types():
+#     # see different types of gpus # todo
+#     d = {}
+#     for gpu in gpu_info():
+#         if gpu.name in d:
+#             d[gpu.name] += 1
+#         else:
+#             d[gpu.name] = 1
+#
+#     '{}X {}'
+#     print(d)
 
 plot()
 
