@@ -148,15 +148,15 @@ def set_layout(fig):
 
 def append_traces(fig, gpumap):
     """append each gpu's 3 traces to a plot"""
-    colorway = ['#007CFF', '#00FCFF', '##FF2200', '#87FF00', '#0300FF', '#8300FF', '#FFC100', '#A200FF', '#FF005D']
+    colorway = ['#007CFF', '#00FCFF', '#FF2200', '#87FF00', '#0300FF', '#8300FF', '#FFC100', '#A200FF', '#FF005D']
     c = 0
     for gpu in gpu_info():
         listofstreams = list(gpumap.get(gpu.id))
-        mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name=('gpu', gpu.id+1),
+        mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name=(f'gpu{gpu.id+1}'),
                          line =dict(color=colorway[c]))  # 1 per trace
-        temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1],name=('gpu', gpu.id+1),
+        temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1],name=(f'gpu{gpu.id+1}'),
                           line =dict(color=colorway[c]))  # 1 per trace
-        load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2],name=('gpu', gpu.id+1),
+        load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2],name=(f'gpu{gpu.id+1}'),
                           line =dict(color=colorway[c]))  # 1 per trace
 
         fig.append_trace(mem, 1, 1)
