@@ -61,27 +61,30 @@ def plot():
         temp = dict(token=i, maxpoints=1000)
         streams.append(temp)
 
+    j = 0
     for gpu in gpu_info():
-        #
         t = []
-        for i in range(0, len(streams), 3):
-            if i+2<len(streams):
+        for i in range(j, len(streams), 3):
+            if i + 2<len(streams):
                 s1 = streams[i]
                 s2 = streams[i+1]
                 s3 = streams[i+2]
-                t =[s1, s2, s3]
-        gpumap[gpu.serial] = t
+                t = [s1, s2, s3]
+        j += 3
+        gpumap[gpu.id] = t
+
 
     for gpu in gpu_info():
-        listofstreams = list(gpumap.get(gpu.serial))
-        for i in range(len(listofstreams)):
-            mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name='')  # 1 per trace
-            temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1], name='')  # 1 per trace
-            load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2], name='')  # 1 per trace
+        listofstreams = list(gpumap.get(gpu.id))
+        mem = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[0], name='')  # 1 per trace
+        temp = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[1], name='')  # 1 per trace
+        load = go.Scatter(x=[], y=[], mode='lines+markers', stream=listofstreams[2], name='')  # 1 per trace
 
-            fig.append_trace(mem, 1, 1)
-            fig.append_trace(temp, 1, 2)
-            fig.append_trace(load, 2, 1)
+        fig.append_trace(mem, 1, 1)
+        fig.append_trace(temp, 1, 2)
+        fig.append_trace(load, 2, 1)
+
+
 
     fig['layout'].update(height=800, width=800, title=f'{socket.gethostname()}')
     fig['layout']['xaxis1'].update(title='Memory')
@@ -97,12 +100,12 @@ def open_streams(stream_id, gpumap):
     for s in stream_id:
         st = py.Stream(s)
         st.open()
-
     streamdict = {}
     start = time.time()
     for gpu in gpu_info():
-        listofstreams = list(gpumap.get(gpu.serial))
-        for i in range(len(listofstreams)):
+        listofstreams = list(gpumap.get(gpu.id))
+
+        for i in range(3):
             st0 = py.Stream(listofstreams[0]['token'])
             st1 = py.Stream(listofstreams[1]['token'])
             st2 = py.Stream(listofstreams[2]['token'])
@@ -111,20 +114,16 @@ def open_streams(stream_id, gpumap):
             st1.open()
             st2.open()
 
-            streamdict[gpu.serial] = [st0, st1, st2]
+            streamdict[gpu.id] = [st0, st1, st2]
+    print('stream', streamdict)
     a = time.time()-start
-    print(a)
-    print(streamdict)
 
     while True:
         x = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         for gpu in gpu_info():
-            streamdict[gpu.serial][0].write(dict(x=x, y=memory(gpu.serial)))
-            streamdict[gpu.serial][1].write(dict(x=x, y=temperature(gpu.serial)))
-            streamdict[gpu.serial][2].write(dict(x=x, y=load(gpu.serial)))
-            # st0.write(dict(x=x, y=memory(gpu.serial)))
-            # st1.write(dict(x=x, y=temperature(gpu.serial)))
-            # st2.write(dict(x=x, y=load(gpu.serial)))
+            streamdict[gpu.id][0].write(dict(x=x, y=memory(gpu.id)))
+            streamdict[gpu.id][1].write(dict(x=x, y=temperature(gpu.id)))
+            streamdict[gpu.id][2].write(dict(x=x, y=load(gpu.id)))
 
         time.sleep(3)
 
@@ -134,10 +133,9 @@ def temperature(ids):
     gpus = gpu_info()
     result = {}
     for g in gpus:
-        if g.serial == ids:
+        if g.id == ids:
             result = g
             break
-    print(result.temperature)
     return result.temperature
 
 
@@ -145,7 +143,7 @@ def memory(ids):
     gpus = gpu_info()
     result = {}
     for g in gpus:
-        if g.serial == ids:
+        if g.id == ids:
             result = g
             break
     percent = (result.memoryUsed / result.memoryTotal)*100
@@ -157,7 +155,7 @@ def load(ids):
     gpus = gpu_info()
     result = {}
     for g in gpus:
-        if g.serial == ids:
+        if g.id == ids:
             result = g
             break
     return result.load
