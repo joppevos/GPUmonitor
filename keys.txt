@@ -1,7 +1,6 @@
-sehsucht
-hnGBsUh06NKbqBMle8Mb
-enedfilzr5
-d4krs93e0q
+place name
+place api-key
+3878utkzni (replace with your own tokens. 1 gpu needs 3 tokens to stream temp, mem and load)
 f8thwyqzkq
 fy2sglippw
 34mn9mbbnt
