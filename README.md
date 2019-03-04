@@ -14,6 +14,9 @@ The script is able to stream from any nvidea-based gpu host.
 Run stream.py and the monitor link will pop-up.
 
 
+![ubeihmdxyi_02812](https://user-images.githubusercontent.com/44348300/53724699-b2e02400-3e6a-11e9-932a-0f9a44b03503.png)
+
+
 ### Info
 more information about nvidea smi 
 https://developer.download.nvidia.com/compute/DCGM/docs/nvidia-smi-367.38.pdf
