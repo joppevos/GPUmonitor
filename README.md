@@ -1,6 +1,6 @@
 # GPUmonitor
 
-A gpu monitor based on plotly.
+A gpu monitor based on plotly. Build for monitoring render farms.
 
 The script is able to stream from any nvidea-based gpu host.
 
@@ -23,3 +23,5 @@ https://developer.download.nvidia.com/compute/DCGM/docs/nvidia-smi-367.38.pdf
 
 GPU util package
 https://github.com/anderskm/gputil
+
+tested on Windows 8/10
