@@ -20,5 +20,6 @@ Run stream.py and the monitor link will pop-up.
 ### Info
 more information about nvidea smi 
 https://developer.download.nvidia.com/compute/DCGM/docs/nvidia-smi-367.38.pdf
+
 GPU util package
 https://github.com/anderskm/gputil
